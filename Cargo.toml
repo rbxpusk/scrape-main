@@ -1,0 +1,71 @@
+[package]
+name = "twitch-chat-scraper"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name <your.email@example.com>"]
+description = "Multi-agent Twitch chat scraper with TUI monitoring"
+license = "MIT"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+tokio-stream = "0.1"
+async-stream = "0.3"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+
+# Web scraping and browser automation
+chromiumoxide = "0.7"
+scraper = "0.18"
+
+# TUI
+ratatui = "0.24"
+crossterm = "0.27"
+
+# HTTP client and server
+reqwest = { version = "0.11", features = ["json"] }
+axum = "0.7"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+headers = "0.4"
+http = "1.0"
+
+
+
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Utilities
+uuid = { version = "1.0", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+futures = "0.3"
+async-trait = "0.1"
+rand = "0.8"
+
+# File system watching
+notify = "6.0"
+
+# Configuration
+config = "0.13"
+
+# Hashing for deduplication
+sha2 = "0.10"
+md5 = "0.7"
+
+# System monitoring
+humantime-serde = "1.1.1"
+sysinfo = "0.29"
+
+
+[dev-dependencies]
+tokio-test = "0.4"
+mockall = "0.12"
+tempfile = "3.0"

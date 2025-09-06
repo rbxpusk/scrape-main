@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitch Chat Scraper Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            opacity: 0.8;
+        }
+
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .unit {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .agents-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .agents-section h2 {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .agents-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .agents-table th,
+        .agents-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .agents-table th {
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: bold;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-running { background: #4CAF50; }
+        .status-idle { background: #FF9800; }
+        .status-error { background: #F44336; }
+        .status-starting { background: #2196F3; }
+
+        .refresh-info {
+            text-align: center;
+            opacity: 0.7;
+            margin-top: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+        }
+
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Twitch Chat Scraper</h1>
+            <p>Real-time monitoring dashboard</p>
+        </div>
+
+        <div id="loading" class="loading pulse">
+            Loading dashboard data...
+        </div>
+
+        <div id="error" class="error" style="display: none;">
+            <h3>⚠️ Connection Error</h3>
+            <p>Unable to fetch data from the scraper. Please check if the service is running.</p>
+        </div>
+
+        <div id="dashboard" style="display: none;">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Active Agents</h3>
+                    <div class="value" id="active-agents">0</div>
+                    <div class="unit">running</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Messages</h3>
+                    <div class="value" id="total-messages">0</div>
+                    <div class="unit">scraped</div>
+                </div>
+                <div class="stat-card">
+                    <h3>CPU Usage</h3>
+                    <div class="value" id="cpu-usage">0</div>
+                    <div class="unit">%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Memory Usage</h3>
+                    <div class="value" id="memory-usage">0</div>
+                    <div class="unit">MB</div>
+                </div>
+            </div>
+
+            <div class="agents-section">
+                <h2>📊 Agent Status</h2>
+                <table class="agents-table">
+                    <thead>
+                        <tr>
+                            <th>Agent ID</th>
+                            <th>Streamer</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Assigned At</th>
+                            <th>Retry Attempts</th>
+                        </tr>
+                    </thead>
+                    <tbody id="agents-tbody">
+                        <!-- Agent data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="refresh-info">
+                <p>🔄 Auto-refreshing every 5 seconds</p>
+                <p>Last updated: <span id="last-updated">Never</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let refreshInterval;
+
+        async function fetchStats() {
+            try {
+                const response = await fetch('/api/stats');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                updateDashboard(data);
+                showDashboard();
+            } catch (error) {
+                console.error('Failed to fetch stats:', error);
+                showError();
+            }
+        }
+
+        function updateDashboard(data) {
+            // Update main stats
+            document.getElementById('active-agents').textContent = data.active_agents || 0;
+            document.getElementById('total-messages').textContent = (data.system_metrics?.total_messages_scraped || 0).toLocaleString();
+            document.getElementById('cpu-usage').textContent = (data.system_metrics?.cpu_usage || 0).toFixed(1);
+            document.getElementById('memory-usage').textContent = Math.round((data.system_metrics?.memory_usage || 0) / 1024 / 1024);
+
+            // Update agents table
+            const tbody = document.getElementById('agents-tbody');
+            tbody.innerHTML = '';
+
+            if (data.agent_assignments && data.agent_assignments.length > 0) {
+                data.agent_assignments.forEach(agent => {
+                    const row = document.createElement('tr');
+                    const statusClass = `status-${(agent.status || 'idle').toLowerCase()}`;
+                    
+                    row.innerHTML = `
+                        <td>${agent.agent_id?.substring(0, 8) || 'N/A'}</td>
+                        <td>${agent.streamer || 'N/A'}</td>
+                        <td><span class="status-badge ${statusClass}">${agent.status || 'Unknown'}</span></td>
+                        <td>${agent.priority || 0}</td>
+                        <td>${agent.assigned_at ? new Date(agent.assigned_at).toLocaleTimeString() : 'N/A'}</td>
+                        <td>${agent.retry_attempts || 0}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="6" style="text-align: center; opacity: 0.7;">No agents currently running</td>';
+                tbody.appendChild(row);
+            }
+
+            // Update timestamp
+            document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+        }
+
+        function showDashboard() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+        }
+
+        function showError() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+        }
+
+        function startAutoRefresh() {
+            refreshInterval = setInterval(fetchStats, 5000); // Refresh every 5 seconds
+        }
+
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchStats();
+            startAutoRefresh();
+        });
+
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopAutoRefresh();
+            } else {
+                startAutoRefresh();
+            }
+        });
+    </script>
+</body>
+</html>

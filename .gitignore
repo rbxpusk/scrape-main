@@ -1,0 +1,14 @@
+# Rust
+/target/
+Cargo.lock
+
+# VSCode
+.vscode/
+
+# Local Data
+/scraped_data/
+/opencodetmp/
+
+# Config
+config.toml
+test_config_load.rs
